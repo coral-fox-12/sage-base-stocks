@@ -1,0 +1,1 @@
+{"description":"Sage — research agent for tokenized stocks on Base (Base Stocks Maxxing Season, Agentic Stock Finance track)","name":"sage-stocks-base","scripts":{"test":"node --test tests/test.mjs"},"type":"module","version":"0.1.0"}
