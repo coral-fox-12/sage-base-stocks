@@ -3,6 +3,8 @@
 // Honesty rule: if live data is unavailable, the UI says so. It never invents a price.
 import { FEEDS, BASE_RPC, fetchAllPrices, fetchPrice, fetchRound, isStale } from './feeds.js';
 import { buildBrief, pctChange, newPaperPortfolio, paperBuy, paperSell, paperValue } from './analysis.js';
+import { ANCHOR_CONTRACT, ANCHOR_CHAIN_ID, ANCHOR_EXPLORER } from './config.js';
+import { anchorBriefViaWallet } from './anchor.js';
 
 const $ = (id) => document.getElementById(id);
 const SYMBOLS = Object.keys(FEEDS);
@@ -154,6 +156,44 @@ async function generateBrief() {
     </div>`;
   $('brief').dataset.briefJson = JSON.stringify(brief);
   $('rewriteBtn').disabled = !localStorage.getItem(GEMINI_KEY);
+  updateAnchorUi();
+}
+
+function updateAnchorUi() {
+  const btn = $('anchorBtn');
+  const status = $('anchorStatus');
+  const hasBrief = Boolean($('brief').dataset.briefJson);
+  if (!ANCHOR_CONTRACT) {
+    btn.disabled = true;
+    btn.title = 'Needs a funded Base Sepolia wallet — see README';
+    status.textContent = 'Onchain anchoring: contract ready, awaiting testnet deployment. The button stays disabled until then — we don\'t fake a transaction.';
+    return;
+  }
+  const short = ANCHOR_CONTRACT.slice(0, 6) + '…' + ANCHOR_CONTRACT.slice(-4);
+  status.innerHTML = `Onchain anchoring: contract <a href="${ANCHOR_EXPLORER}/address/${ANCHOR_CONTRACT}" target="_blank" rel="noopener">${short}</a> on Base Sepolia (chain ${ANCHOR_CHAIN_ID}). ` +
+    (hasBrief ? 'Generate a brief, then anchor it with your wallet.' : 'Generate a brief first.');
+  btn.disabled = !hasBrief;
+  btn.title = hasBrief ? 'Anchor this brief onchain with your wallet (Base Sepolia testnet)' : 'Generate a brief first';
+}
+
+async function anchorCurrentBrief() {
+  const raw = $('brief').dataset.briefJson;
+  if (!raw) return;
+  const btn = $('anchorBtn');
+  const status = $('anchorStatus');
+  const symbol = $('stockSelect').value;
+  btn.disabled = true;
+  status.textContent = 'Waiting for your wallet — confirm the transaction on Base Sepolia…';
+  try {
+    const { briefHash, txHash, explorerTx } = await anchorBriefViaWallet(symbol, raw);
+    status.innerHTML = `Anchored ${symbol} brief <code>${briefHash.slice(0, 18)}…</code> — ` +
+      `<a href="${explorerTx}" target="_blank" rel="noopener">tx ${txHash.slice(0, 10)}…${txHash.slice(-8)}</a> on Base Sepolia. ` +
+      `Anyone can verify the brief hash against the brief above.`;
+  } catch (e) {
+    status.textContent = 'Anchoring failed: ' + (e?.message || e) + ' — nothing was sent.';
+  } finally {
+    updateAnchorUi();
+  }
 }
 
 function renderPaper() {
@@ -219,6 +259,7 @@ for (const s of SYMBOLS) {
 $('stockSelect').value = 'NVDA';
 $('paperSelect').value = 'NVDA';
 $('briefBtn').onclick = generateBrief;
+$('anchorBtn').onclick = anchorCurrentBrief;
 $('paperBuy').onclick = () => paperTrade('BUY');
 $('paperSell').onclick = () => paperTrade('SELL');
 $('paperReset').onclick = () => { paper = newPaperPortfolio(); savePaper(); renderPaper(); };
@@ -233,4 +274,5 @@ $('saveKey').onclick = () => {
 };
 $('rewriteBtn').onclick = rewriteWithAI;
 if (localStorage.getItem(GEMINI_KEY)) $('rewriteBtn').disabled = false;
+updateAnchorUi();
 refreshPrices();

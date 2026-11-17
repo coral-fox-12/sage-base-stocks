@@ -18,8 +18,18 @@ An agent that researches Coinbase tokenized stocks on Base:
 - **Optional AI rewrite:** paste your own Gemini key (browser localStorage only)
   to rewrite a brief in natural language. Works fully without any key.
 - **Onchain anchor:** `contracts/ResearchAnchor.sol` stores `keccak256(brief)` so
-  a brief's existence and content are verifiable. Source only — not yet deployed
-  (needs Base Sepolia test ETH from a faucet).
+  a brief's existence and content are verifiable. **Compiled 2026-11-17** (solc
+  0.8.24, artifact in `deploy-tools/artifact.json`, hashes verified).
+  Deploy script `deploy-tools/deploy.mjs` is ready and dry-run verified
+  (deploy gas 393,786; total worst case ≈0.0000036 ETH) — **blocked only on
+  Base Sepolia ETH**: wallet `0x592D…` holds 0. Faucets tried: QuickNode needs
+  a mainnet balance on the wallet (we have 0); Chainlink needs Turnstile;
+  pk910 PoW needs a custom captcha at session start. Next: claim via a
+  browser (Alchemy faucet first — free account, no card — else Chainlink),
+  then `node deploy.mjs`, set `ANCHOR_CONTRACT` in `js/config.js`, re-deploy.
+  Full status: [DEPLOY_STATUS.md](DEPLOY_STATUS.md). The site's anchor button
+  is wired (`js/anchor.js`, calldata encoder byte-identical to ethers) and
+  stays disabled until the contract address is set.
 
 **Not financial advice. No real trading. Not available to US users for trading —
 this app does not trade at all.**
@@ -27,7 +37,7 @@ this app does not trade at all.**
 ## Run locally
 
 ```bash
-# tests (13 tests, incl. one live-RPC check that skips cleanly offline)
+# tests (15 tests, incl. one live-RPC check that skips cleanly offline)
 npm test
 
 # serve the static site (any static server; e.g.)

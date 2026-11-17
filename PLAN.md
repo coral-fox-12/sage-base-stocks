@@ -115,10 +115,17 @@ contracts/ResearchAnchor.sol — anchor contract (deploy pending testnet ETH)
 - [x] `tests/test.mjs` (node --test, all passing)
 - [x] `contracts/ResearchAnchor.sol` (source only — not deployed)
 - [x] `README.md`, `package.json`
-- [ ] Deploy to Surge (parent: surge.sh, e.g. `sage-stocks-base.surge.sh`)
+- [x] Compile ResearchAnchor (solc 0.8.24, artifact verified by sha256)
+- [x] Deploy script `deploy-tools/deploy.mjs` (dry-run OK; needs faucet ETH)
+- [x] Anchor button wired (`js/config.js` + `js/anchor.js` + app.js; 15/15 tests)
+- [x] Deploy to Surge (parent: surge.sh, e.g. `sage-stocks-base.surge.sh`)
 - [ ] Public GitHub repo under coral-fox-12 (parent: create + push)
 - [ ] Base Sepolia test ETH + deploy ResearchAnchor + wire the anchor button
-      (needs a faucet step — parent/browser task)
+      (contract COMPILED 2026-11-17, deploy script dry-run OK, button wired +
+      site re-deployed — blocked only on faucet ETH; see DEPLOY_STATUS.md for
+      the faucet-by-faucet verdicts and the exact browser step: Alchemy faucet
+      first, else Chainlink; then `node deploy.mjs`, set ANCHOR_CONTRACT,
+      re-deploy)
 - [ ] Demo video (1–2 min, screen recording) + X post tagging @buildonbase
       (parent owns X posting — no X account exists yet)
 - [ ] Submit the Google Form (parent owns submission)

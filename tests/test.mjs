@@ -175,3 +175,35 @@ test('live: Base RPC returns a fresh NVDA price', async (t) => {
   assert.ok(quote.updatedAtUnix > 0);
   assert.equal(isStale(quote.updatedAtUnix), false, 'feed should be fresh at test time');
 });
+
+// Onchain anchoring: config + hand-rolled ABI encoding (no browser needed).
+test('anchor config: null until deployed, or a valid address', async () => {
+  const { ANCHOR_CONTRACT, ANCHOR_CHAIN_ID } = await import('../js/config.js');
+  assert.equal(ANCHOR_CHAIN_ID, 84532);
+  assert.ok(
+    ANCHOR_CONTRACT === null || /^0x[0-9a-fA-F]{40}$/.test(ANCHOR_CONTRACT),
+    `ANCHOR_CONTRACT=${ANCHOR_CONTRACT}`,
+  );
+});
+
+test('encodeAnchorBriefCalldata: exact ABI layout', async () => {
+  const { encodeAnchorBriefCalldata, ANCHOR_BRIEF_SELECTOR } = await import('../js/anchor.js');
+  const hash = '0x' + 'ab'.repeat(32);
+  const call = encodeAnchorBriefCalldata('NVDA', hash);
+  // selector
+  assert.equal(ANCHOR_BRIEF_SELECTOR, 'b7c7967c');
+  assert.ok(call.startsWith('0xb7c7967c'), call.slice(0, 12));
+  const body = call.slice(10); // strip 0x + selector
+  const word = (i) => body.slice(i * 64, (i + 1) * 64);
+  assert.equal(word(0), '40'.padStart(64, '0')); // string offset = 0x40
+  assert.equal(word(1), 'ab'.repeat(32)); // bytes32 hash verbatim
+  assert.equal(word(2), '4'.padStart(64, '0')); // 'NVDA' length = 4
+  assert.equal(word(3).slice(0, 8), Buffer.from('NVDA').toString('hex')); // 'NVDA' bytes
+  assert.equal(body.length, 4 * 64); // exactly 4 words
+  // longer symbol spans a second data word
+  const long = encodeAnchorBriefCalldata('A'.repeat(40), hash);
+  assert.equal(long.slice(10).length, 5 * 64);
+  // malformed hash throws, never produces a bad tx
+  assert.throws(() => encodeAnchorBriefCalldata('NVDA', '0x1234'), /32-byte/);
+  assert.throws(() => encodeAnchorBriefCalldata('NVDA', '0xzz' + '00'.repeat(31)), /32-byte/);
+});
