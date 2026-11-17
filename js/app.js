@@ -234,7 +234,7 @@ async function rewriteWithAI() {
   if (!raw) { alert('Generate a brief first.'); return; }
   $('aiBrief').innerHTML = '<p>Rewriting with Gemini…</p>';
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${encodeURIComponent(key)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text:
