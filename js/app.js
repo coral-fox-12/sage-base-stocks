@@ -54,7 +54,7 @@ function renderPrices() {
       const stale = !demoMode && isStale(q.updatedAtUnix);
       tile.innerHTML = `<div class="sym">${s} · ${q.name}</div>` +
         `<div class="price">$${q.price.toFixed(2)}</div>` +
-        `<div class="meta">${q.demo ? `<span class="demo">DEMO</span> · ${DEMO_STAMP}` : `updated ${q.updatedAt.toISOString().slice(0, 19)}Z`}</div>` +
+        `<div class="meta">${q.demo ? `<span class="demo">DEMO</span> · ${DEMO_STAMP}` : `updated ${q.updatedAt.toISOString().slice(0, 16).replace('T', ' ')} UTC`}</div>` +
         (stale ? `<div class="stale">STALE FEED</div>` : '');
     }
     grid.appendChild(tile);
